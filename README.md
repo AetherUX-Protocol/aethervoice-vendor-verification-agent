@@ -36,7 +36,7 @@ Reason: vague delivery timeline and inconsistent answers
 ---
 
 ## Demo
-[Add demo video link here]
+https://youtu.be/UZQKLeDEzy0
 
 ---
 

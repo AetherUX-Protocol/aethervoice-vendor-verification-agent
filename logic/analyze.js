@@ -1,42 +1,37 @@
 const axios = require("axios");
+const fs = require("fs");
+const path = require("path");
 
-// Replace with your AIsa API key
 const API_KEY = "YOUR_AISA_API_KEY";
 
+// Load prompt from file
+const promptTemplate = fs.readFileSync(
+  path.join(__dirname, "../prompts/verification.txt"),
+  "utf-8"
+);
+
 async function analyzeTranscript(transcript) {
+  const prompt = promptTemplate.replace("{{TRANSCRIPT}}", transcript);
+
   try {
     const response = await axios.post(
       "https://api.aisa.one/v1/chat/completions",
       {
-        model: "gpt-4o-mini", // use any available model from AIsa
+        model: "gpt-4o-mini",
         messages: [
           {
             role: "system",
-            content: `
-You are a business verification assistant.
-
-Analyze the conversation and classify it as:
-- VERIFIED (clear, consistent answers)
-- RISK (vague, inconsistent, or uncertain answers)
-
-Return ONLY JSON in this format:
-
-{
-  "decision": "VERIFIED or RISK",
-  "confidence": number between 0 and 1,
-  "reason": "short explanation"
-}
-            `
+            content: "You are a business verification assistant."
           },
           {
             role: "user",
-            content: transcript
+            content: prompt
           }
         ]
       },
       {
         headers: {
-          "Authorization": `Bearer ${API_KEY}`,
+          Authorization: `Bearer ${API_KEY}`,
           "Content-Type": "application/json"
         }
       }
@@ -44,25 +39,14 @@ Return ONLY JSON in this format:
 
     const result = response.data.choices[0].message.content;
 
-    // Try parsing JSON safely
     try {
       return JSON.parse(result);
-    } catch (e) {
-      return {
-        decision: "UNKNOWN",
-        confidence: 0,
-        reason: "Failed to parse response",
-        raw: result
-      };
+    } catch {
+      return { decision: "UNKNOWN", confidence: 0, reason: result };
     }
 
   } catch (error) {
-    console.error("Error calling AIsa API:", error.message);
-    return {
-      decision: "ERROR",
-      confidence: 0,
-      reason: "API call failed"
-    };
+    return { decision: "ERROR", confidence: 0, reason: error.message };
   }
 }
 

@@ -51,3 +51,4 @@ async function analyzeTranscript(transcript) {
 }
 
 module.exports = { analyzeTranscript };
+riskScore: 75

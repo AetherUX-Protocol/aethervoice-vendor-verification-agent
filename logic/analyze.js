@@ -1,54 +1,65 @@
-const axios = require("axios");
-const fs = require("fs");
-const path = require("path");
-
-const API_KEY = "YOUR_AISA_API_KEY";
-
-// Load prompt from file
-const promptTemplate = fs.readFileSync(
-  path.join(__dirname, "../prompts/verification.txt"),
-  "utf-8"
-);
-
 async function analyzeTranscript(transcript) {
-  const prompt = promptTemplate.replace("{{TRANSCRIPT}}", transcript);
+  const text = transcript.toLowerCase();
 
-  try {
-    const response = await axios.post(
-      "https://api.aisa.one/v1/chat/completions",
-      {
-        model: "gpt-4o-mini",
-        messages: [
-          {
-            role: "system",
-            content: "You are a business verification assistant."
-          },
-          {
-            role: "user",
-            content: prompt
-          }
-        ]
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${API_KEY}`,
-          "Content-Type": "application/json"
-        }
-      }
-    );
-
-    const result = response.data.choices[0].message.content;
-
-    try {
-      return JSON.parse(result);
-    } catch {
-      return { decision: "UNKNOWN", confidence: 0, reason: result };
-    }
-
-  } catch (error) {
-    return { decision: "ERROR", confidence: 0, reason: error.message };
+  // 🔴 Strong risk signals
+  if (
+    text.includes("not sure") ||
+    text.includes("maybe") ||
+    text.includes("don't know") ||
+    text.includes("uncertain")
+  ) {
+    return {
+      decision: "RISK",
+      confidence: 0.75,
+      riskScore: 75,
+      reason: "Vendor responses show uncertainty"
+    };
   }
+
+  // 🟠 Medium risk signals
+  if (
+    text.includes("think") ||
+    text.includes("probably")
+  ) {
+    return {
+      decision: "RISK",
+      confidence: 0.6,
+      riskScore: 60,
+      reason: "Vendor responses are not fully confident"
+    };
+  }
+
+  // 🟢 Positive signals
+  if (
+    (text.includes("delivered") && text.includes("received")) ||
+    text.includes("confirmed") ||
+    text.includes("completed")
+  ) {
+    return {
+      decision: "VERIFIED",
+      confidence: 0.9,
+      riskScore: 10,
+      reason: "Clear and confident response"
+    };
+  }
+
+  // ⚠️ Missing key info
+  if (!text.includes("delivered")) {
+    return {
+      decision: "RISK",
+      confidence: 0.65,
+      riskScore: 65,
+      reason: "No clear delivery confirmation"
+    };
+  }
+
+  // 🔶 Default fallback
+  return {
+    decision: "RISK",
+    confidence: 0.5,
+    riskScore: 50,
+    reason: "Insufficient or unclear information"
+  };
 }
 
 module.exports = { analyzeTranscript };
-riskScore: 75

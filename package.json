@@ -1,1 +1,11 @@
-
+{
+  "name": "aethervoice-vendor-verification-agent",
+  "version": "1.0.0",
+  "description": "Voice-based AI agent that verifies vendor responses before payment decisions.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "author": "Rolla",
+  "license": "MIT"
+}

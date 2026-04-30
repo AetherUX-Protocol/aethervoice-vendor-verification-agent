@@ -10,7 +10,12 @@ Businesses rely on verbal confirmations, which can be vague or unreliable.
 This agent analyzes vendor responses and outputs a clear decision:
 
 - VERIFIED → Safe to proceed  
-- RISK → Requires review  
+- RISK → Requires review
+- Architecture: Privacy-First & Sovereign
+
+Local-First: All voice-to-text analysis is processed locally, ensuring sensitive B2B trade data never touches the cloud.
+
+Deterministic Logic: Uses a three-tier confidence gate (42% / 75% / 90%) to automate high-integrity financial decisions.
 
 ## How to Run
 

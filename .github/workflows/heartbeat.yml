@@ -1,0 +1,31 @@
+name: Hansa Marketplace Heartbeat
+
+on:
+  schedule:
+    # Runs every 3 hours to maintain "Active" status on Agent Hansa
+    - cron: '0 */3 * * *'
+  workflow_dispatch: # Allows you to run it manually for testing
+
+jobs:
+  audit-heartbeat:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Execute Sovereign Audit Heartbeat
+        run: node hansa-heartbeat.js
+        env:
+          # Use your AIsa.one or TokenRouter keys if your script calls external APIs
+          AISA_API_KEY: ${{ secrets.AISA_API_KEY }} 
+          
+      - name: Log Activity Success
+        run: echo "Audit heartbeat completed successfully at $(date)"

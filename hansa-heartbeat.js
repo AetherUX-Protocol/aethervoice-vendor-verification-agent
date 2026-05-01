@@ -1,29 +1,34 @@
-// AetherVoice Sovereign Auditor - Automated Heartbeat
-// Verified Thresholds: 42% (Decline), 75% (Review), 90% (Approve)
+name: Hansa Marketplace Heartbeat
 
-const mockResponses = [
-    { text: "The shipment is confirmed for 5 PM.", score: 0.95 },
-    { text: "I think it was delivered, let me check...", score: 0.65 },
-    { text: "Delivery failed due to incorrect address.", score: 0.30 },
-    { text: "Yes, I have the signed BOL right here.", score: 0.92 }
-];
+on:
+  schedule:
+    - cron: '0 */3 * * *'
+  workflow_dispatch:
 
-function runAudit() {
-    const item = mockResponses[Math.floor(Math.random() * mockResponses.length)];
-    let decision = "";
+jobs:
+  audit-heartbeat:
+    runs-on: ubuntu-latest
+    # This env variable opts you into the new Node.js 24 standard early
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
-    if (item.score >= 0.90) {
-        decision = "VERIFIED (Automated Approval)";
-    } else if (item.score >= 0.75) {
-        decision = "RISK (Requires Human Review)";
-    } else {
-        decision = "DECLINED (High Uncertainty)";
-    }
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-    console.log(`[Hansa Activity] Auditing: "${item.text}"`);
-    console.log(`[Hansa Activity] Confidence Score: ${item.score}`);
-    console.log(`[Hansa Activity] Final Decision: ${decision}`);
-    console.log(`[iExec Compliance] Processing within Nox Protocol (TEE) simulated layer.`);
-}
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          # Changed to 24 to align with the new runner standard
+          node-version: '24'
 
-runAudit();
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Execute Sovereign Audit Heartbeat
+        run: node hansa-heartbeat.js
+        env:
+          AISA_API_KEY: ${{ secrets.AISA_API_KEY }} 
+          
+      - name: Log Activity Success
+        run: echo "Audit heartbeat completed successfully at $(date)"
